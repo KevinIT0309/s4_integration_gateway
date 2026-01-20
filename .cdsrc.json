@@ -1,0 +1,14 @@
+{
+  "cdsc": {
+    "draftMessages": true
+  },
+
+  "build": {
+    "target": ".",
+    "tasks": [
+      {
+        "for": "java-cf"
+      }
+    ]
+  }
+}

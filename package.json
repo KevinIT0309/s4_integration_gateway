@@ -1,0 +1,19 @@
+{
+  "name": "cnma_s4_integration_gateway-cds",
+  "version": "1.0.0",
+  "description": "Proconarum S4 Integration Gateway",
+  "license": "ISC",
+  "repository": "https://proconarum@dev.azure.com/proconarum/proconarum/_git/cnma_s4_integration_gateway",
+  "devDependencies": {
+    "@sap/cds-dk": "^9.1.0",
+    "rimraf": "^3.0.2"
+  },
+  "cds": {
+    "requires": {
+      "ASN_SRV": {
+        "kind": "odata-v2",
+        "model": "srv/external/ASN_SRV"
+      }
+    }
+  }
+}

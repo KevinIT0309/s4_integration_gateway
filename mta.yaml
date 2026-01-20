@@ -1,0 +1,104 @@
+_schema-version: 3.3.0
+ID: cnma_s4_integration_gateway
+version: 1.0.0-SNAPSHOT
+description: "Proconarum S4 Integration Gateway Project"
+parameters:
+  enable-parallel-deployments: true
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npx cds build --production
+
+
+
+#-------------------------------------
+# 📝 MODULES SPACE
+#-------------------------------------
+modules:
+#::::: -----▪️ Service Module ▪️----- :::::
+  - name: cnma_s4_integration_gateway_srv
+    type: java
+    path: srv
+    properties:
+      OPTIMIZE_MEMORY: true
+      SPRING_PROFILES_ACTIVE: cloud
+      JBP_CONFIG_COMPONENTS: "jres: ['com.sap.xs.java.buildpack.jre.SAPMachineJRE']"
+      JBP_CONFIG_SAP_MACHINE_JRE: '{ version: 21.+ }'
+      CLIENT_ID: '' # default: PROCONARUM
+      ERP_DESTINATION: '' #default: KS4500_ODATA_1
+    parameters:
+      instances: 1
+      memory: 1024M
+      disk-quota: 1024M
+      buildpack: sap_java_buildpack_jakarta
+      stack: cflinuxfs4
+      env:
+        DEPLOY_TIME: "Deployed at $(date)"
+        JAVA_OPTS: >
+          -Xmx1536m -Xms512m
+          -XX:MaxMetaspaceSize=1024m
+          -XX:ReservedCodeCacheSize=512m
+          -XX:MaxDirectMemorySize=512m
+          -XX:+UseG1GC
+          -XX:+UseStringDeduplication
+    build-parameters:
+      builder: custom
+      commands:
+        - mvn clean package -DskipTests=true --batch-mode
+      build-result: target/*-exec.jar
+    provides:
+      - name: srv-api # required by consumers of CAP services
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: cnma_s4_integration_gateway_destination
+      - name: cnma_s4_integration_gateway_connectivity
+
+
+
+
+
+#-------------------------------------
+# 📝 RESOURCES SPACE
+#-------------------------------------
+resources:
+#:::::➡️ Destination
+  - name: cnma_s4_integration_gateway_destination
+    type: org.cloudfoundry.managed-service
+    requires:
+      - name: srv-api
+    parameters:
+      service: destination
+      service-plan: lite
+      config:
+        forwardAuthToken: true
+        HTML5Runtime_enabled: true
+        version: 1.0.0
+        init_data:
+          instance:
+            existing_destinations_policy: update
+            destinations:
+              - Name: cnma_s4_integration_gateway_srv_destination
+                Description: S4 Integration Gateway Service Destination
+                Authentication: NoAuthentication
+                Type: HTTP
+                ProxyType: Internet
+                URL: ~{srv-api/srv-url}
+                HTML5.DynamicDestination: true
+                HTML5.ForwardAuthToken: true
+                HTML5.Timeout: 600000
+              - Name: ui5
+                Authentication: NoAuthentication
+                Type: HTTP
+                ProxyType: Internet
+                URL: https://ui5.sap.com
+
+
+#:::::➡️ Connectivity          
+  - name: cnma_s4_integration_gateway_connectivity
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: connectivity
+      service-plan: lite

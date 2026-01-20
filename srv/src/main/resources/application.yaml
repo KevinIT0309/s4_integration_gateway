@@ -1,0 +1,85 @@
+
+---
+spring:
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:file::memory:?cache=shared
+    hikari:
+      connection-timeout: 300000
+      minimum-idle: 2
+      idle-timeout: 120000
+      maximum-pool-size: 10
+      leak-detection-threshold: 300000
+  config:
+    activate:
+      on-profile: default
+  sql:
+    init:
+      mode: always
+cds:
+  remote:
+    services:
+      '[CNMA_MMIV_SRV]':
+        destination:
+          name: CNMA_MMIV_SRV
+        type: odata-v2
+      '[ASN_SRV]':
+        destination:
+          name: ASN_SRV
+        type: odata-v2
+      '[CNMA_FIIV_SRV]':
+        destination:
+          name: CNMA_FIIV_SRV
+        type: odata-v2
+---
+cds:
+  features:
+    outbox: false
+  persistence:
+    skip: true
+  
+    # skip: true
+---
+cds:
+  odata-v4:
+    endpoint:
+      path: /api
+  security.mock.users:
+  - name: admin
+    password: 123456
+management:
+  endpoint:
+    health:
+      show-components: always
+      probes:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+  health:
+    defaults:
+      enabled: false
+    ping:
+      enabled: true
+    db:
+      enabled: true
+
+---
+adapter:
+  clients:
+    PROCONARUM:
+      packages:
+        ASN: PROCONARUM_ASN
+    DNUS:
+      packages:
+        ASN: DNUS_ASN
+    IT_KOMPASS:
+      packages:
+        INVOICE: IT_KOMPASS_INVOICE
+    Stabilo:
+      packages:
+        PO: Stabilo_PO
+        POC: Stabilo_PO
+
+

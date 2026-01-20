@@ -1,0 +1,13 @@
+###
+POST http://localhost:8080/api/cnma/client_adapter/process
+Content-Type: application/json
+Authorization: Basic admin:123456
+Accept-Language: en
+
+{
+  "clientId": "DNUS",
+  "packageName": "SN",
+  "payload": {
+    "poNumber": "4500001234"
+  }
+}
